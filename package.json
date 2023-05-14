@@ -16,6 +16,7 @@
     "@fastify/cors": "^8.1.0",
     "@fastify/multipart": "^7.1.0",
     "@fastify/static": "^6.5.0",
+    "@lens-protocol/client": "^1.0.1",
     "@nouns/assets": "^0.4.2",
     "@nouns/sdk": "^0.4.0",
     "@types/jsonwebtoken": "^8.5.9",

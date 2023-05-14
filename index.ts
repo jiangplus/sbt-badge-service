@@ -15,6 +15,10 @@ import { ImageData, getNounSeedFromBlockHash, getNounData } from '@nouns/assets'
 import { buildSVG } from '@nouns/sdk';
 const { palette } = ImageData;
 
+import { LensClient, development, production } from "@lens-protocol/client";
+
+
+
 import * as dotenv from "dotenv";
 dotenv.config();
 
@@ -35,6 +39,17 @@ server.get("/", async (request, reply) => {
   return "pong\n";
 });
 
+// function getNounsImg(key: string) {
+// }
+
+
+const lensClient = new LensClient({
+  environment: production,
+});
+
+console.log(lensClient)
+
+
 server.get<{
   Querystring: {
     name: string;
@@ -43,15 +58,63 @@ server.get<{
   let name = request.query.name || "";
   let nextNounId = 123
   let hash = '0x' + sha256(name)
-  console.log(name)
-  console.log(hash)
   const seed = getNounSeedFromBlockHash(nextNounId, hash);
 
   const { parts, background } = getNounData(seed);
-  console.log({parts, background})
-
   const svgBinary = buildSVG(parts, palette, background);
   return svgBinary;
+});
+
+server.get<{
+  Querystring: {
+    key: string;
+  };
+}>("/lens/getinfo", async (request, reply) => {
+  let key = request.query.key || "";
+  const allOwnedProfiles = await lensClient.profile.fetchAll({
+    ownedBy: [key],
+  });
+
+  if (allOwnedProfiles.items.length == 0) {
+    return {result: 'error', message: 'no lens handle'}
+  }
+
+  let profile = allOwnedProfiles.items.find((x) => x.isDefault)
+
+  if (!profile) {
+    return {result: 'error', message: 'no lens default profile'}
+  }
+
+  return profile;
+});
+
+server.get<{
+  Querystring: {
+    key: string;
+  };
+}>("/lens/getsvg", async (request, reply) => {
+  let key = request.query.key || "";
+  const allOwnedProfiles = await lensClient.profile.fetchAll({
+    ownedBy: [key],
+  });
+
+  if (allOwnedProfiles.items.length == 0) {
+    return {result: 'error', message: 'no lens handle'}
+  }
+
+  let profile = allOwnedProfiles.items.find((x) => x.isDefault)
+
+  if (!profile) {
+    return {result: 'error', message: 'no lens default profile'}
+  }
+  let nextNounId = 123
+  let hash = '0x' + sha256(profile.handle)
+  const seed = getNounSeedFromBlockHash(nextNounId, hash);
+
+  const { parts, background } = getNounData(seed);
+  const svg = buildSVG(parts, palette, background);
+
+  return svg;
 });
 
 
