@@ -1,0 +1,31 @@
+<head>
+  <script
+    src="https://cdn.ethers.io/lib/ethers-5.2.umd.min.js"
+    type="application/javascript"
+  ></script>
+</head>
+<body>
+  <script type="text/javascript">
+    console.log(ethers);
+
+    async function go() {
+      window.ethereum.enable();
+      window.provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+      console.log("address", await signer.getAddress());
+      let sig = await signer.signMessage("hello world");
+      let splited = ethers.utils.splitSignature(sig);
+      console.log("splited", splited);
+      console.log(
+        "recoverd",
+        ethers.utils.recoverAddress(
+          ethers.utils.hashMessage("hello world"),
+          splited
+        )
+      );
+      console.log("recoverd", ethers.utils.verifyMessage("hello world", sig));
+    }
+
+    go();
+  </script>
+</body>
